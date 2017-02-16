@@ -25,8 +25,23 @@ class range_date:
         self._week = None
 
     def __str__(self):
-        return '%d,%s,%s' % (self._year, str(self._month) if self._month != None else '*', str(self._day) if self._day != None else '*')\
-        + ('[week: %d]' % (self._week) if self._week != None else '')
+        return '[%s - %s]' % (self.startDate(), self.endDate())
+
+    def __repr__(self):
+        y = self._year
+        m = str(self._month) if self._month != None else '*'
+        d = str(self._day) if self._day != None else '*'
+        w = str(self._week) if self._week != None else '*'
+        return '%s,%s,%s,%s' % (y,m,d,w)
+
+    @staticmethod
+    def by(repr):
+        nums = repr.split(',')
+        y = int(nums[0]) if nums[0] != '*' else None
+        m = int(nums[1]) if nums[1] != '*' else None
+        d = int(nums[2]) if nums[2] != '*' else None
+        w = int(nums[3]) if nums[3] != '*' else None
+        return range_date(y,m,d).addWeek(w)
 
     def __eq__(self, other):
         return isinstance(self, range_date) \
@@ -39,6 +54,10 @@ class range_date:
               or not isinstance(other, range_date) \
               or not self.startDate() == other.startDate() \
               or not self.endDate() == other.endDate()
+
+    def __and__(self, other):
+        return (self.startDate() < other.startDate() and other.startDate() < self.endDate())\
+               or (other.startDate() < self.startDate() and self.startDate() < other.endDate())
 
     def startDate(self):
         y = self._year
@@ -195,5 +214,13 @@ if __name__ == '__main__':
         assert range_date(2017, 2, 1).addWeek(None).endDate() == date(2017, 2, 1)
 
         assert range_date(2017, 2, 1).addWeek(1).day(4).endDate() == date(2017, 2, 4)
+
+        # 演算子のテスト
+        assert not(range_date(2017, 2, None) & range_date(2017, 3, None))
+        assert range_date(2017, 2, None) & range_date(2017, 2, 10)
+        assert range_date(2017, 2, 1).addWeek(0) & range_date(2017, 2, None)
+
+        assert range_date(2017, 2, None) == range_date.by('2017,2,*,*')
+        assert range_date(2017, 2, 1).addWeek(0) == range_date.by(repr(range_date(2017, 2, 1).addWeek(0)))
 
     _doTest(range_date_test)
