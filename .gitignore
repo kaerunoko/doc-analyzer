@@ -1,6 +1,7 @@
 *.DS_Store
 *.pyc
 *.pyo
+.*
 client_secrets.json
 fusiontables.dat
 lib/*
