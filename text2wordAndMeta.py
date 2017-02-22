@@ -138,6 +138,7 @@ def _getWords(text):
     new_wps = filter(lambda wp: not wp[0] == '', wps)
 
     noun = map(lambda w: w[0], filter(lambda wp: wp[0] != '' and not wp[1] in [u'数', u'数量', u'date'], new_wps))
+    noun = filter(lambda w: w not in u'!"#$%&\'()*+,-./:;<=>?@[¥]^_`{|}~｡､･｢｣', noun)
 
     meta = {}
     for index, wp in enumerate(new_wps):

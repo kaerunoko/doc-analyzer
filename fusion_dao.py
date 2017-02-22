@@ -44,7 +44,7 @@ class RawDbDao(object):
         '''
         # ROWIDでの絞り込みが理想だが、数値型っぽく見えるけど文字列のように振る舞うので絞り込みに使えないorz
 
-        sql = 'SELECT ROWID, source, title, link, pubDate, description FROM %s WHERE pubDate > \'%s\'' % (self.table_id, date)
+        sql = 'SELECT ROWID, source, title, link, pubDate, description FROM %s WHERE pubDate > \'%s\' order by pubDate DESC' % (self.table_id, date)
         # sql = 'SELECT ROWID, source, title, link, pubDate, description FROM %s WHERE ROWID > %d' % (self.table_id, row_id)
         records = self.service.query().sql(sql = sql).execute()
         if records.has_key('rows') and time != '00:00:00':
