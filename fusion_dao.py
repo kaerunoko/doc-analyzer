@@ -142,6 +142,40 @@ class WordsDbDao(object):
         # TODO implement
         pass
 
+class SimilarityDbDao(object):
+    '''
+    類似度判定の結果を保存しておくDB
+    '''
+    def __init__(self):
+        self.service = _helper.getFusionService()
+        self.table_id = '18c5nFHwuDLezmyJfvQbV3dErZchYPUM-kM6J4s_A'
+
+    def insert(self, rows):
+        '''
+        rows は (refId, id, similarity) のリストまたはタプル
+        '''
+        rowsstr = '\r\n'.join([','.join(row) for row in [map(lambda v: str(v), row) for row in rows]])
+        media = MediaInMemoryUpload(body = rowsstr.encode('UTF-8'), mimetype='application/octet-stream', resumable=True)
+        return self.service.table().importRows(tableId = self.table_id, media_body=media, encoding='UTF-8').execute()
+
+    def get(self, ref_rss_id, rss_id):
+        '''
+        類似度の一覧を取得する。
+        引数は両方または片方を指定
+        '''
+        if (ref_rss_id == None) & (rss_id == None):
+            raise Exception('ref_rss_id or rss_id are required')
+        where = []
+        if ref_rss_id != None:
+            where.append('RefRssId = %d' % (ref_rss_id))
+        if rss_id != None:
+            where.append('RssId = %d' % (rss_id))
+        sql = 'SELECT RefRssId, RssId, Similarity FROM %s WHERE %s' % (self.table_id, ' AND '.join(where))
+        records = self.service.query().sql(sql = sql).execute()
+        if not records.has_key('rows'):
+            records['rows'] = []
+        return records
+
 _helper = _DaoHelper()
 
 if __name__ == "__main__":
