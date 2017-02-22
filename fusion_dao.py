@@ -10,13 +10,14 @@ class _DaoHelper(object):
     def __init__(self):
         self._service = None
 
-    def getFusionService(self, args):
+    def getFusionService(self):
         if self._service == None:
-            self._service = _initFusionService(args)
+            self._service = _initFusionService()
         return self._service
 
-def _initFusionService(args):
+def _initFusionService():
     from googleapiclient import sample_tools
+    args = [None, '--noauth_local_webserver']
     service, flags = sample_tools.init(args, 'fusiontables', 'v2', __doc__, __file__)
     return service
 
@@ -33,8 +34,8 @@ class RawDbDao(object):
     """
     RSSの生データにアクセスするためのDAO
     """
-    def __init__(self, args):
-        self.service = _helper.getFusionService(args)
+    def __init__(self):
+        self.service = _helper.getFusionService()
         self.table_id = '1BjdqgQI9WJYskX_gB3FFbA0L6riNa_ZNL6eaFHL0'
 
     def newer(self, date, time = '00:00:00'):
@@ -70,8 +71,8 @@ class WordsDbDao(object):
     '''
     ニュースが単語分割されたテーブルにアクセスするためのDAO
     '''
-    def __init__(self, args):
-        self.service = _helper.getFusionService(args)
+    def __init__(self):
+        self.service = _helper.getFusionService()
         self.table_id = '1OEGMKcgMxGfz4e9UX_MYhv9SF1VKiv0px_T518uS'
         self.queue = []
 
