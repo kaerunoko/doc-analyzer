@@ -10,25 +10,16 @@ class _DaoHelper(object):
     def __init__(self):
         self._service = None
 
+    def _initFusionService(self):
+        from googleapiclient import sample_tools
+        args = [None, '--noauth_local_webserver']
+        service, flags = sample_tools.init(args, 'fusiontables', 'v2', __doc__, __file__)
+        return service
+
     def getFusionService(self):
         if self._service == None:
-            self._service = _initFusionService()
+            self._service = self._initFusionService()
         return self._service
-
-def _initFusionService():
-    from googleapiclient import sample_tools
-    args = [None, '--noauth_local_webserver']
-    service, flags = sample_tools.init(args, 'fusiontables', 'v2', __doc__, __file__)
-    return service
-
-def _initFusionService1(args):
-    from oauth2client.client import GoogleCredentials
-    from googleapiclient.discovery import build
-    import os
-    if 'GOOGLE_APPLICATION_CREDENTIALS' not in os.environ:
-        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = './credentials.js'
-    credentials = GoogleCredentials.get_application_default()
-    return build('fusiontables', 'v2', credentials=credentials)
 
 class RawDbDao(object):
     """
@@ -108,12 +99,12 @@ class WordsDbDao(object):
 
     def newer(self, date, time = '00:00:00'):
         '''
-        pubDateが指定より新しいのみを取得（新規ニュースの類似度判定）
+        pubDateが指定より新しいのみを取得（新規ニュースの類似度判定/学習用）
         fusiontablesがdatetime型に（多分）対応していないため、時刻の絞り込みはスクリプト上で実施
         '''
         # ROWIDでの絞り込みが理想だが、数値型っぽく見えるけど文字列のように振る舞うので絞り込みに使えないorz
 
-        sql = 'SELECT RssId, WordList, NumberList, NewsDate, PubDate FROM %s WHERE PubDate > \'%s\'' % (self.table_id, date)
+        sql = 'SELECT RssId, WordList, NumberList, NewsDate, PubDate FROM %s WHERE PubDate > \'%s\' ORDER BY RssId DESC' % (self.table_id, date)
         # sql = 'SELECT ROWID, source, title, link, pubDate, description FROM %s WHERE ROWID > %d' % (self.table_id, row_id)
         records = self.service.query().sql(sql = sql).execute()
         if records.has_key('rows') and time != '00:00:00':
@@ -129,7 +120,7 @@ class WordsDbDao(object):
         '''
         RSS_IDのリストを渡すと生データのリストを返す（Web用）
         '''
-        sql = 'SELECT RssId, WordList, NumberList, NewsDate, PubDate FROM %s WHERE RssId IN (%s)' % (self.table_id, ','.join([str(i) for i in rss_ids]))
+        sql = 'SELECT RssId, WordList, NumberList, NewsDate, PubDate FROM %s WHERE RssId IN (%s) ORDER BY RssId DESC' % (self.table_id, ','.join([str(i) for i in rss_ids]))
         records = self.service.query().sql(sql = sql).execute()
         if not records.has_key('rows'):
             records['rows'] = []
